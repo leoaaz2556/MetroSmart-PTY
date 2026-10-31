@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MetroSmart PTY — Móvil</title>
+  <meta name="description" content="Copiloto de tránsito móvil para MetroBus y Metro de Panamá.">
+
+  <!-- Estilos base y visuales -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Leaflet CDN para mapas interactivos -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <style>
+    /* Estilos específicos optimizados para la experiencia móvil */
+    body {
+      padding-bottom: 80px;
+    }
+
+    .mobile-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--bg-surface, #ffffff);
+      border-bottom: 2px solid var(--color-metro-red, #d52b1e);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mobile-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mobile-brand h1 {
+      font-size: 1.1rem;
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    .mobile-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px;
+    }
+
+    .mobile-map-container {
+      height: 250px;
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .chat-card-mobile {
+      display: flex;
+      flex-direction: column;
+      height: 380px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 12px;
+      background: var(--bg-card, #ffffff);
+      overflow: hidden;
+    }
+
+    .chat-messages-mobile {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .switch-desktop-link {
+      text-align: center;
+      display: block;
+      padding: 15px 0;
+      font-size: 0.8rem;
+      color: var(--text-muted, #666);
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body class="mobile-view">
+
+  <!-- Encabezado Móvil -->
+  <header class="mobile-header">
+    <div class="mobile-brand">
+      <div class="transit-icon-badge">
+        <span class="badge-l1">L1</span>
+        <span class="badge-l2">L2</span>
+      </div>
+      <div>
+        <h1>MetroSmart PTY</h1>
+        <span class="status-pill" style="font-size:0.6rem; padding: 1px 6px;">En Vivo</span>
+      </div>
+    </div>
+    <button id="theme-toggle-btn" class="theme-toggle-btn" aria-label="Cambiar tema">
+      <span id="theme-icon">🌙</span>
+    </button>
+  </header>
+
+  <main class="mobile-layout">
+    
+    <!-- Bloque Desplegable 1: Telemetría y Configuración -->
+    <details open class="panel-card">
+      <summary class="panel-header" style="cursor: pointer; user-select: none;">
+        <h2 class="panel-title" style="font-size: 0.95rem;">⚙️ Telemetría & Ubicación</h2>
+        <span id="delay-factor-badge" class="factor-badge heavy">1.80x</span>
+      </summary>
+
+      <div class="panel-body" style="padding-top: 10px;">
+        
+        <!-- Seleccionar Ubicación -->
+        <div class="control-group">
+          <label for="ubicacion" class="control-label">📍 Mi Estación Actual</label>
+          <select id="ubicacion" class="form-select"></select>
+        </div>
+
+        <!-- Saldo -->
+        <div class="control-group">
+          <label for="saldo" class="control-label">
+            <span>💳 Saldo Disponible</span>
+            <span id="saldo-feedback" style="font-weight:bold;">$1.50</span>
+          </label>
+          <div class="saldo-wrapper">
+            <span class="currency-symbol">$</span>
+            <input id="saldo" type="number" class="form-input" value="1.50" min="0" step="0.05">
+          </div>
+          <div class="quick-saldo-chips" style="margin-top: 6px;">
+            <button type="button" class="chip-btn" data-add="0.35">+ L1 ($0.35)</button>
+            <button type="button" class="chip-btn" data-add="0.50">+ L2 ($0.50)</button>
+            <button type="button" class="chip-btn" data-set="0.20">Bajo ($0.20)</button>
+          </div>
+        </div>
+
+        <!-- Tráfico y Clima -->
+        <div class="form-row">
+          <div class="control-group">
+            <label for="hora" class="control-label">⏰ Hora</label>
+            <input id="hora" type="time" class="form-input">
+          </div>
+          <div class="control-group">
+            <label for="trafico" class="control-label">🚗 Tráfico</label>
+            <select id="trafico" class="form-select">
+              <option value="Normal">Normal</option>
+              <option value="Pesado" selected>Pesado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label for="clima" class="control-label">🌦️ Clima</label>
+          <select id="clima" class="form-select">
+            <option value="Despejado">Despejado</option>
+            <option value="Lluvia" selected>Lluvia</option>
+          </select>
+        </div>
+
+        <!-- Contexto JSON (Opcional en móvil, minimizado) -->
+        <details style="margin-top: 8px;">
+          <summary style="font-size: 0.75rem; color: var(--text-muted);">Ver JSON de Contexto ctx()</summary>
+          <pre class="live-json-block"><code id="live-context-json">{}</code></pre>
+        </details>
+
+      </div>
+    </details>
+
+    <!-- Mapa Interactivo Móvil -->
+    <div class="mobile-map-container">
+      <div id="map" style="width: 100%; height: 100%;"></div>
+    </div>
+
+    <!-- Bloque Desplegable 2: Motor de IA -->
+    <details class="ai-model-details">
+      <summary class="ai-model-summary">
+        <span>🤖 Motor de IA</span>
+        <span id="model-status-badge" class="model-active-badge">Reglas Locales</span>
+      </summary>
+      <div class="ai-model-content">
+        <div class="control-group">
+          <label for="modo" class="control-label">Modo Activo</label>
+          <select id="modo" class="form-select">
+            <option value="local" selected>Reglas locales (Offline)</option>
+            <option value="ollama">Ollama Local</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="ep" class="control-label">Endpoint</label>
+          <input id="ep" type="text" class="form-input" value="http://localhost:11434">
+        </div>
+        <div class="control-group">
+          <label for="mdl" class="control-label">Modelo</label>
+          <input id="mdl" type="text" class="form-input" value="llama3.1:8b">
+        </div>
+      </div>
+    </details>
+
+    <!-- Interfaz de Chat Móvil -->
+    <section class="chat-card-mobile">
+      <div id="chat-messages" class="chat-messages-mobile">
+        <div class="chat-bubble bot">
+          <div class="bubble-header">
+            <span class="bubble-badge">METROSMART</span>
+            <span>Copiloto</span>
+          </div>
+          <div class="bubble-body">
+            ¡Hola! 👋 Soy tu copiloto móvil de tránsito en Panamá. ¿Hacia dónde te diriges hoy?
+          </div>
+        </div>
+      </div>
+
+      <!-- Preguntas Rápidas Adaptadas a Móvil -->
+      <div class="quick-questions-wrapper" style="overflow-x: auto; flex-wrap: nowrap; padding: 6px;">
+        <button type="button" class="quick-q-btn" data-query="¿Cómo voy a San Miguelito con este tráfico?">🚗 San Miguelito</button>
+        <button type="button" class="quick-q-btn" data-query="¿Me alcanza el saldo para ir a Tocumen?">💳 Saldo Tocumen</button>
+        <button type="button" class="quick-q-btn" data-query="¿Cuál es la ruta más rápida a 5 de Mayo con lluvia?">🌧️ 5 de Mayo</button>
+      </div>
+
+      <form id="chat-form" class="chat-input-bar">
+        <input id="chat-input" type="text" class="chat-input-field" placeholder="Consulta ruta o saldo..." autocomplete="off" required>
+        <button id="send-btn" type="submit" class="send-btn">➔</button>
+      </form>
+    </section>
+
+    <!-- Enlace para forzar la vista de escritorio -->
+    <a href="index.html?view=desktop" class="switch-desktop-link">Ver versión de escritorio completa</a>
+
+  </main>
+
+  <!-- SCRIPTS REQUERIDOS EN ORDEN ESTRICTO -->
+  <script src="rutas.js"></script>
+  <script src="eta.js"></script>
+  <script src="ai.js"></script>
+
+  <script>
+    // ========================================================================
+    // LÓGICA DE INTERFAZ MÓVIL (Mantiene compatibilidad con ctx() y ask())
+    // ========================================================================
+    const ubicacionSelect = document.getElementById("ubicacion");
+    const saldoInput = document.getElementById("saldo");
+    const saldoFeedback = document.getElementById("saldo-feedback");
+    const horaInput = document.getElementById("hora");
+    const traficoSelect = document.getElementById("trafico");
+    const climaSelect = document.getElementById("clima");
+    const modoSelect = document.getElementById("modo");
+    const liveJsonEl = document.getElementById("live-context-json");
+    const delayFactorBadge = document.getElementById("delay-factor-badge");
+    const modelStatusBadge = document.getElementById("model-status-badge");
+    const chatMessagesEl = document.getElementById("chat-messages");
+    const chatForm = document.getElementById("chat-form");
+    const chatInput = document.getElementById("chat-input");
+    const themeToggleBtn = document.getElementById("theme-toggle-btn");
+    const themeIcon = document.getElementById("theme-icon");
+
+    let mapInstance = null;
+    let activeOriginMarker = null;
+    let activeRoutePolyline = null;
+
+    function ctx() {
+      const ubicacion = ubicacionSelect ? ubicacionSelect.value : "Albrook";
+      const saldo_usd = saldoInput ? Number(parseFloat(saldoInput.value || "0").toFixed(2)) : 1.50;
+      let hora = horaInput && horaInput.value ? horaInput.value : "";
+      if (!hora) {
+        const now = new Date();
+        hora = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      }
+      return {
+        ubicacion,
+        saldo_usd,
+        hora,
+        trafico: traficoSelect ? traficoSelect.value : "Normal",
+        clima: climaSelect ? climaSelect.value : "Despejado"
+      };
+    }
+
+    async function ask(pregunta) {
+      if (!pregunta || !pregunta.trim()) return;
+      const cleanPregunta = pregunta.trim();
+
+      appendMessage("user", cleanPregunta);
+      const loadingEl = showTypingIndicator();
+
+      const modo = modoSelect ? modoSelect.value : "local";
+      let respuesta = "";
+
+      try {
+        if (modo === "ollama" && typeof ollama === "function") {
+          respuesta = await ollama(cleanPregunta);
+        } else if (typeof local === "function") {
+          await new Promise(res => setTimeout(res, 200));
+          respuesta = local(cleanPregunta);
+        } else {
+          respuesta = "Error en el motor de respuesta.";
+        }
+      } catch (err) {
+        respuesta = "⚠️ Error: " + (err.message || err);
+      } finally {
+        if (loadingEl) loadingEl.remove();
+      }
+
+      appendMessage("bot", respuesta);
+      detectAndDrawRoute(cleanPregunta, respuesta);
+    }
+
+    function appendMessage(sender, text) {
+      const bubble = document.createElement("div");
+      bubble.className = `chat-bubble ${sender}`;
+
+      if (sender === "bot") {
+        const header = document.createElement("div");
+        header.className = "bubble-header";
+        header.innerHTML = `<span class="bubble-badge">METROSMART</span>`;
+        bubble.appendChild(header);
+      }
+
+      const body = document.createElement("div");
+      body.className = "bubble-body";
+      body.textContent = text;
+      bubble.appendChild(body);
+
+      chatMessagesEl.appendChild(bubble);
+      chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      const bubble = document.createElement("div");
+      bubble.className = "chat-bubble bot";
+      bubble.innerHTML = `
+        <div class="typing-indicator">
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+        </div>`;
+      chatMessagesEl.appendChild(bubble);
+      chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+      return bubble;
+    }
+
+    function detectAndDrawRoute(pregunta, respuesta) {
+      if (typeof STOPS === "undefined" || !mapInstance) return;
+      const currentOrigin = ubicacionSelect.value;
+      const combinedText = (pregunta + " " + respuesta).toLowerCase();
+
+      for (const stopName of Object.keys(STOPS)) {
+        if (stopName.toLowerCase() === currentOrigin.toLowerCase()) continue;
+        const cleanStop = stopName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const cleanText = combinedText.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+        if (cleanText.includes(cleanStop)) {
+          drawRouteBetweenStops(currentOrigin, stopName);
+          break;
+        }
+      }
+    }
+
+    function drawRouteBetweenStops(originName, destName) {
+      if (!mapInstance || !STOPS[originName] || !STOPS[destName]) return;
+      if (activeRoutePolyline) mapInstance.removeLayer(activeRoutePolyline);
+
+      const p1 = [STOPS[originName].lat, STOPS[originName].lng];
+      const p2 = [STOPS[destName].lat, STOPS[destName].lng];
+      const routeColor = (originName.includes("Tocumen") || destName.includes("Tocumen")) ? "#00875a" : "#d52b1e";
+
+      activeRoutePolyline = L.polyline([p1, p2], {
+        color: routeColor,
+        weight: 5,
+        dashArray: "6, 6"
+      }).addTo(mapInstance);
+
+      mapInstance.fitBounds(activeRoutePolyline.getBounds(), { padding: [30, 30] });
+    }
+
+    function updateTelemetryDisplay() {
+      const c = ctx();
+      if (liveJsonEl) liveJsonEl.textContent = JSON.stringify(c, null, 2);
+      if (saldoFeedback) saldoFeedback.textContent = `$${c.saldo_usd.toFixed(2)}`;
+
+      const f = typeof factor === "function" ? factor(c.hora, c.trafico, c.clima) : 1.0;
+      if (delayFactorBadge) delayFactorBadge.textContent = `${f.toFixed(2)}x`;
+
+      updateOriginMapMarker(c.ubicacion);
+    }
+
+    function updateOriginMapMarker(ubicacionName) {
+      if (!mapInstance || typeof STOPS === "undefined" || !STOPS[ubicacionName]) return;
+      const stop = STOPS[ubicacionName];
+
+      if (activeOriginMarker) {
+        activeOriginMarker.setLatLng([stop.lat, stop.lng]);
+      } else {
+        const originIcon = L.divIcon({
+          className: "custom-origin-icon",
+          html: `<div style="background:#d52b1e; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:10px;">📍</div>`,
+          iconSize: [22, 22]
+        });
+        activeOriginMarker = L.marker([stop.lat, stop.lng], { icon: originIcon }).addTo(mapInstance);
+      }
+      mapInstance.panTo([stop.lat, stop.lng]);
+    }
+
+    function initMap() {
+      if (typeof L === "undefined") return;
+      mapInstance = L.map("map", { zoomControl: false }).setView([8.995, -79.515], 11);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18 }).addTo(mapInstance);
+
+      if (typeof STOPS !== "undefined") {
+        Object.entries(STOPS).forEach(([name, stop]) => {
+          const isL2 = name.includes("Tocumen");
+          const stopIcon = L.divIcon({
+            className: "station-icon",
+            html: `<div style="background:${isL2 ? '#00875a' : '#0b1f3a'}; width:10px; height:10px; border-radius:50%; border:1px solid #fff;"></div>`,
+            iconSize: [10, 10]
+          });
+          L.marker([stop.lat, stop.lng], { icon: stopIcon }).addTo(mapInstance);
+        });
+      }
+      updateOriginMapMarker(ubicacionSelect.value);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof STOPS !== "undefined") {
+        ubicacionSelect.innerHTML = "";
+        Object.keys(STOPS).forEach((name) => {
+          const opt = document.createElement("option");
+          opt.value = name;
+          opt.textContent = name;
+          if (name === "Albrook") opt.selected = true;
+          ubicacionSelect.appendChild(opt);
+        });
+      }
+
+      const now = new Date();
+      horaInput.value = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+      initMap();
+      updateTelemetryDisplay();
+
+      ubicacionSelect.addEventListener("change", updateTelemetryDisplay);
+      saldoInput.addEventListener("input", updateTelemetryDisplay);
+      horaInput.addEventListener("input", updateTelemetryDisplay);
+      traficoSelect.addEventListener("change", updateTelemetryDisplay);
+      climaSelect.addEventListener("change", updateTelemetryDisplay);
+
+      document.querySelectorAll(".chip-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const current = parseFloat(saldoInput.value || "0");
+          if (btn.dataset.add) saldoInput.value = (current + parseFloat(btn.dataset.add)).toFixed(2);
+          if (btn.dataset.set) saldoInput.value = parseFloat(btn.dataset.set).toFixed(2);
+          updateTelemetryDisplay();
+        });
+      });
+
+      chatForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (chatInput.value.trim()) {
+          const q = chatInput.value;
+          chatInput.value = "";
+          ask(q);
+        }
+      });
+
+      document.querySelectorAll(".quick-q-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          if (btn.dataset.query) ask(btn.dataset.query);
+        });
+      });
+
+      themeToggleBtn.addEventListener("click", () => {
+        const isDark = document.documentElement.classList.toggle("dark");
+        themeIcon.textContent = isDark ? "☀️" : "🌙";
+      });
+    });
+
+    window.ctx = ctx;
+    window.ask = ask;
+  </script>
+</body>
+</html>
