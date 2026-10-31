@@ -231,6 +231,252 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
     </section>
 
   </main>
+  <!-- ======================================================================
+       INTERFAZ INFERIOR (Barra / Dock de Acciones Rápidas)
+       ====================================================================== -->
+  <nav class="bottom-transit-bar" aria-label="Navegación y accesos directos">
+    <div class="bottom-bar-container">
+      
+      <!-- Botón 1: Perfil de Usuario -->
+      <button id="btn-open-perfil" type="button" class="bottom-bar-btn">
+        <span class="bottom-btn-icon">👤</span>
+        <div class="bottom-btn-texts">
+          <span class="bottom-btn-title">Perfil de Usuario</span>
+          <span class="bottom-btn-subtitle">Tarjeta & Preferencias</span>
+        </div>
+      </button>
+
+      <!-- Botón 2: Recarga de Tarjetas -->
+      <button id="btn-open-recarga" type="button" class="bottom-bar-btn highlight-green">
+        <span class="bottom-btn-icon">💳</span>
+        <div class="bottom-btn-texts">
+          <span class="bottom-btn-title">Recarga de Tarjetas</span>
+          <span class="bottom-btn-subtitle">RapiPass · Yappy · Clave</span>
+        </div>
+      </button>
+
+      <!-- Botón 3: Ver Rutas -->
+      <button id="btn-open-rutas" type="button" class="bottom-bar-btn highlight-red">
+        <span class="bottom-btn-icon">🗺️</span>
+        <div class="bottom-btn-texts">
+          <span class="bottom-btn-title">Ver Rutas</span>
+          <span class="bottom-btn-subtitle">Metro L1/L2 & MetroBus</span>
+        </div>
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- ======================================================================
+       VENTANAS MODALES EMERGENTES
+       ====================================================================== -->
+  <div id="modal-backdrop" class="modal-backdrop hidden"></div>
+
+  <!-- Modal 1: Perfil de Usuario -->
+  <div id="modal-perfil" class="transit-modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div class="modal-title-wrapper">
+        <span class="modal-icon">👤</span>
+        <div>
+          <h3 class="modal-title">Perfil de Usuario</h3>
+          <p class="modal-subtitle">Pasajero Frecuente · Tarjeta Metro / RapiPass</p>
+        </div>
+      </div>
+      <button type="button" class="modal-close-btn" data-close="modal-perfil">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Tarjeta física simulada -->
+      <div class="metro-card-visual">
+        <div class="metro-card-chip"></div>
+        <div class="metro-card-logo">METRO DE PANAMÁ · MIBUS</div>
+        <div class="metro-card-number">PTY · 8840 · 1920 · 4410</div>
+        <div class="metro-card-footer">
+          <div>
+            <span class="card-meta-lbl">TITULAR</span>
+            <span id="card-holder-name" class="card-meta-val">Viajero MetroSmart</span>
+          </div>
+          <div>
+            <span class="card-meta-lbl">SALDO VINCULADO</span>
+            <span id="profile-card-balance" class="card-meta-val text-green">$1.50</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-group" style="margin-top: 1rem;">
+        <label for="profile-name-input" class="control-label">Nombre del Titular</label>
+        <input id="profile-name-input" type="text" class="form-input" value="Viajero MetroSmart">
+      </div>
+
+      <div class="form-row" style="margin-top: 0.75rem;">
+        <div class="control-group">
+          <label for="profile-fav-station" class="control-label">Estación Frecuente</label>
+          <select id="profile-fav-station" class="form-select">
+            <option value="Albrook" selected>Albrook</option>
+            <option value="San Miguelito">San Miguelito</option>
+            <option value="Vía España">Vía España</option>
+            <option value="5 de Mayo">5 de Mayo</option>
+            <option value="Tocumen">Tocumen</option>
+            <option value="Marbella">Marbella</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Viajes este mes</label>
+          <div class="form-input" style="background:var(--bg-card-subtle); font-weight:800; color:var(--color-metro-green);">
+            26 viajes (~$9.10)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button id="btn-save-profile" type="button" class="chip-btn" style="padding: 0.5rem 1.25rem; background: var(--color-metro-blue); color: #fff;">
+        Guardar Perfil
+      </button>
+      <button type="button" class="chip-btn" data-close="modal-perfil" style="padding: 0.5rem 1rem;">
+        Cerrar
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal 2: Recarga de Tarjetas -->
+  <div id="modal-recarga" class="transit-modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div class="modal-title-wrapper">
+        <span class="modal-icon" style="background: var(--color-metro-green);">💳</span>
+        <div>
+          <h3 class="modal-title">Recarga de Tarjeta</h3>
+          <p class="modal-subtitle">Añade saldo instantáneo a tu tarjeta Metro / MetroBus</p>
+        </div>
+      </div>
+      <button type="button" class="modal-close-btn" data-close="modal-recarga">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="recharge-balance-banner">
+        <span>Saldo actual en tarjeta:</span>
+        <strong id="recharge-current-balance">$1.50 USD</strong>
+      </div>
+
+      <label class="control-label" style="margin-top: 1rem;">Selecciona el monto a recargar (USD):</label>
+      <div class="recharge-amount-grid">
+        <button type="button" class="recharge-amt-btn active" data-amt="1.00">+$1.00</button>
+        <button type="button" class="recharge-amt-btn" data-amt="2.00">+$2.00</button>
+        <button type="button" class="recharge-amt-btn" data-amt="5.00">+$5.00</button>
+        <button type="button" class="recharge-amt-btn" data-amt="10.00">+$10.00</button>
+      </div>
+
+      <div class="control-group" style="margin-top: 0.85rem;">
+        <label for="custom-recharge-input" class="control-label">O ingresa un monto personalizado:</label>
+        <div class="saldo-wrapper">
+          <span class="currency-symbol">$</span>
+          <input id="custom-recharge-input" type="number" min="0.25" max="100" step="0.25" class="form-input" placeholder="Ej: 3.50">
+        </div>
+      </div>
+
+      <label class="control-label" style="margin-top: 1rem;">Método de pago:</label>
+      <div class="payment-methods-list">
+        <label class="payment-method-item">
+          <input type="radio" name="pay-method" value="yappy" checked>
+          <span>🔵 <strong>Yappy</strong> (Banco General)</span>
+        </label>
+        <label class="payment-method-item">
+          <input type="radio" name="pay-method" value="puntopago">
+          <span>🟠 <strong>Punto Pago</strong> / Kiosko</span>
+        </label>
+        <label class="payment-method-item">
+          <input type="radio" name="pay-method" value="clave">
+          <span>💳 <strong>Tarjeta Clave</strong> / Débito</span>
+        </label>
+      </div>
+
+      <div id="recharge-success-msg" class="recharge-success hidden">
+        ✅ ¡Recarga acreditada con éxito! Tu saldo se ha actualizado.
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button id="btn-execute-recharge" type="button" class="send-btn" style="background: var(--color-metro-green);">
+        <span>Confirmar y Recargar</span>
+      </button>
+      <button type="button" class="chip-btn" data-close="modal-recarga" style="padding: 0.5rem 1rem;">
+        Cancelar
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal 3: Ver Rutas Oficiales -->
+  <div id="modal-rutas" class="transit-modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div class="modal-title-wrapper">
+        <span class="modal-icon" style="background: var(--color-metro-red);">🗺️</span>
+        <div>
+          <h3 class="modal-title">Directorio de Rutas</h3>
+          <p class="modal-subtitle">Red de Metro de Panamá y Rutas Clave de MetroBus</p>
+        </div>
+      </div>
+      <button type="button" class="modal-close-btn" data-close="modal-rutas">&times;</button>
+    </div>
+
+    <div class="modal-body" style="max-height: 460px; overflow-y: auto;">
+      <div class="route-directory-card">
+        <div class="route-dir-header">
+          <span class="badge-l1">L1</span>
+          <div>
+            <strong>Línea 1 Metro de Panamá</strong>
+            <div class="route-dir-sub">Albrook ↔ Villa Zaita (14 estaciones) · Tarifa: $0.35</div>
+          </div>
+        </div>
+        <div class="route-quick-actions">
+          <button type="button" class="route-action-chip" data-origin="Albrook" data-dest="San Miguelito">
+            📍 Trazar: Albrook ➔ San Miguelito
+          </button>
+          <button type="button" class="route-action-chip" data-origin="Vía España" data-dest="5 de Mayo">
+            📍 Trazar: Vía España ➔ 5 de Mayo
+          </button>
+        </div>
+      </div>
+
+      <div class="route-directory-card" style="margin-top: 0.85rem;">
+        <div class="route-dir-header">
+          <span class="badge-l2">L2</span>
+          <div>
+            <strong>Línea 2 Metro de Panamá</strong>
+            <div class="route-dir-sub">San Miguelito ↔ Nuevo Tocumen / Ramal Aeropuerto · Tarifa: $0.50</div>
+          </div>
+        </div>
+        <div class="route-quick-actions">
+          <button type="button" class="route-action-chip" data-origin="San Miguelito" data-dest="Tocumen">
+            📍 Trazar: San Miguelito ➔ Tocumen
+          </button>
+          <button type="button" class="route-action-chip" data-origin="Albrook" data-dest="Tocumen">
+            📍 Trazar: Albrook ➔ Tocumen (L1+L2)
+          </button>
+        </div>
+      </div>
+
+      <div class="route-directory-card" style="margin-top: 0.85rem;">
+        <div class="route-dir-header">
+          <span class="badge-l1" style="background:#0b1f3a;">BUS</span>
+          <div>
+            <strong>MetroBus — Troncales y Corredores</strong>
+            <div class="route-dir-sub">Vía España, Transístmica ($0.25) · Corredores ($0.75)</div>
+          </div>
+        </div>
+        <div class="route-quick-actions">
+          <button type="button" class="route-action-chip" data-origin="Marbella" data-dest="Albrook">
+            📍 Trazar: Marbella ➔ Albrook (Calle 50)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="chip-btn" data-close="modal-rutas" style="padding: 0.5rem 1.25rem;">
+        Cerrar
+      </button>
+    </div>
+  </div>
 
   <!-- ======================================================================
        ORDEN DE CARGA ESTRICTO (Contrato):
@@ -300,6 +546,7 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
         trafico,
         clima
       };
+      
     }
 
     /**
@@ -636,6 +883,137 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
         themeText.textContent = "Claro";
       }
     });
+    // ======================================================================
+      // LÓGICA DE MODALES: PERFIL, RECARGA Y RUTAS
+      // ======================================================================
+      const backdrop = document.getElementById("modal-backdrop");
+      const modalPerfil = document.getElementById("modal-perfil");
+      const modalRecarga = document.getElementById("modal-recarga");
+      const modalRutas = document.getElementById("modal-rutas");
+
+      const btnOpenPerfil = document.getElementById("btn-open-perfil");
+      const btnOpenRecarga = document.getElementById("btn-open-recarga");
+      const btnOpenRutas = document.getElementById("btn-open-rutas");
+
+      const profileNameInput = document.getElementById("profile-name-input");
+      const cardHolderName = document.getElementById("card-holder-name");
+      const profileCardBalance = document.getElementById("profile-card-balance");
+      const btnSaveProfile = document.getElementById("btn-save-profile");
+
+      const rechargeCurrentBalance = document.getElementById("recharge-current-balance");
+      const customRechargeInput = document.getElementById("custom-recharge-input");
+      const btnExecuteRecharge = document.getElementById("btn-execute-recharge");
+      const rechargeSuccessMsg = document.getElementById("recharge-success-msg");
+
+      function openModal(modalEl) {
+        if (!modalEl || !backdrop) return;
+        backdrop.classList.remove("hidden");
+        modalEl.classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+
+        const currentBal = `$${parseFloat(saldoInput.value || "0").toFixed(2)}`;
+        if (profileCardBalance) profileCardBalance.textContent = currentBal;
+        if (rechargeCurrentBalance) rechargeCurrentBalance.textContent = `${currentBal} USD`;
+        if (rechargeSuccessMsg) rechargeSuccessMsg.classList.add("hidden");
+      }
+
+      function closeAllModals() {
+        if (backdrop) backdrop.classList.add("hidden");
+        [modalPerfil, modalRecarga, modalRutas].forEach(m => {
+          if (m) m.classList.add("hidden");
+        });
+        document.body.style.overflow = "";
+      }
+
+      if (btnOpenPerfil) btnOpenPerfil.addEventListener("click", () => openModal(modalPerfil));
+      if (btnOpenRecarga) btnOpenRecarga.addEventListener("click", () => openModal(modalRecarga));
+      if (btnOpenRutas) btnOpenRutas.addEventListener("click", () => openModal(modalRutas));
+
+      document.querySelectorAll("[data-close]").forEach(btn => {
+        btn.addEventListener("click", closeAllModals);
+      });
+      if (backdrop) backdrop.addEventListener("click", closeAllModals);
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeAllModals();
+      });
+
+      // Guardar nombre de perfil en localStorage
+      if (btnSaveProfile && profileNameInput) {
+        btnSaveProfile.addEventListener("click", () => {
+          const newName = profileNameInput.value.trim() || "Viajero MetroSmart";
+          if (cardHolderName) cardHolderName.textContent = newName;
+          localStorage.setItem("metrosmart-profile-name", newName);
+          btnSaveProfile.textContent = "¡Guardado! ✓";
+          setTimeout(() => {
+            btnSaveProfile.textContent = "Guardar Perfil";
+            closeAllModals();
+          }, 800);
+        });
+      }
+
+      const savedName = localStorage.getItem("metrosmart-profile-name");
+      if (savedName) {
+        if (profileNameInput) profileNameInput.value = savedName;
+        if (cardHolderName) cardHolderName.textContent = savedName;
+      }
+
+      // Selección de monto de recarga
+      let selectedAmt = 1.00;
+      document.querySelectorAll(".recharge-amt-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".recharge-amt-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          selectedAmt = parseFloat(btn.dataset.amt || "1.00");
+          if (customRechargeInput) customRechargeInput.value = "";
+        });
+      });
+
+      if (customRechargeInput) {
+        customRechargeInput.addEventListener("input", () => {
+          const val = parseFloat(customRechargeInput.value);
+          if (!isNaN(val) && val > 0) {
+            document.querySelectorAll(".recharge-amt-btn").forEach(b => b.classList.remove("active"));
+            selectedAmt = val;
+          }
+        });
+      }
+
+      // Confirmar y aplicar recarga al saldo real
+      if (btnExecuteRecharge) {
+        btnExecuteRecharge.addEventListener("click", () => {
+          const current = parseFloat(saldoInput.value || "0");
+          const added = selectedAmt > 0 ? selectedAmt : 1.00;
+          const newBal = (current + added).toFixed(2);
+          saldoInput.value = newBal;
+          updateTelemetryDisplay();
+
+          if (rechargeCurrentBalance) rechargeCurrentBalance.textContent = `$${newBal} USD`;
+          if (profileCardBalance) profileCardBalance.textContent = `$${newBal}`;
+          if (rechargeSuccessMsg) rechargeSuccessMsg.classList.remove("hidden");
+
+          appendMessage("bot", `💳 **Recarga confirmada**: Se acreditaron exitosamente **+$${added.toFixed(2)} USD** a tu tarjeta Metro/RapiPass. Tu nuevo saldo es de **$${newBal} USD**.`);
+
+          setTimeout(() => {
+            closeAllModals();
+          }, 1200);
+        });
+      }
+
+      // Trazar ruta desde el directorio de rutas
+      document.querySelectorAll(".route-action-chip").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const origin = btn.dataset.origin;
+          const dest = btn.dataset.dest;
+          if (origin && dest) {
+            if (ubicacionSelect) ubicacionSelect.value = origin;
+            updateTelemetryDisplay();
+            drawRouteBetweenStops(origin, dest);
+            closeAllModals();
+            ask(`¿Cuál es la mejor ruta para viajar de ${origin} a ${dest}?`);
+          }
+        });
+      });
 
     window.ctx = ctx;
     window.ask = ask;
