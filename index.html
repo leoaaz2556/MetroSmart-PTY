@@ -8,16 +8,6 @@
   <meta property="og:title" content="MetroSmart PTY — Copiloto de Tránsito Metro & MetroBus de Panamá">
   <meta property="og:description" content="Copiloto de tránsito para MetroBus y Metro de Panamá con cálculo de rutas, factor de demora, clima, saldo y telemetría en tiempo real.">
 
-<!-- Cargar el script de detección -->
-<script src="detect-mobile.js"></script>
-
-<script>
-  // Ejecutar la redirección automática al cargar la página
-  document.addEventListener("DOMContentLoaded", function () {
-    MobileDetector.autoRedirect("mobile.html");
-  });
-</script>
-
   <!-- Estilos de Señalética de Transporte PTY -->
   <link rel="stylesheet" href="style.css">
 
@@ -56,7 +46,7 @@
   <!-- Contenedor Principal: 2 Columnas -->
   <main class="main-layout">
     
-    <!-- Panel Izquierdo: Telemetría, Controles y Mapa Leaflet -->
+    <!-- Panel Izquierdo: Telemetría, Controles, Anuncio y Mapa Leaflet -->
     <section class="left-column" aria-label="Panel de Control y Telemetría">
       
       <div class="panel-card">
@@ -128,7 +118,26 @@
             </div>
             <div id="delay-factor-badge" class="factor-badge heavy">1.80x</div>
           </div>
+
+          <!-- Espacio para Anuncio de Google AdSense -->
           <div class="google-ad-section" aria-label="Espacio publicitario patrocinado">
+            <div class="ad-label-wrapper">
+              <span class="ad-label-text">ANUNCIO · PUBLICIDAD</span>
+              <span class="ad-google-brand">Google AdSense</span>
+            </div>
+            
+            <div class="google-ad-container">
+              <!-- Banner de muestra responsivo -->
+              <div class="google-ad-banner">
+                <div class="ad-icon-badge">Ad</div>
+                <div class="ad-content-info">
+                  <span class="ad-sponsor-title">Espacio reservado para Google Ads</span>
+                  <p class="ad-sponsor-desc">Banner adaptable para computador y celular</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -169,7 +178,7 @@
             <input id="mdl" type="text" class="form-input" value="llama3.1:8b" placeholder="llama3.1:8b">
           </div>
           <p class="ai-model-hint">
-            💡 <strong>Ollama Local:</strong> Para usar Ollama, ejecuta en tu terminal <code>ollama run llama3.1:8b</code> con CORS permitido (<code>OLLAMA_ORIGINS="*" ollama serve</code>). En "Reglas locales" el copiloto funciona 100% autónomo y offline.
+            💡 En <strong>"Reglas locales"</strong> el copiloto funciona 100% autónomo y rápido. Si usas Ollama, asegúrate de tenerlo corriendo en tu terminal.
           </p>
         </div>
       </details>
@@ -193,14 +202,9 @@
               <span>Copiloto de Transporte</span>
             </div>
             <div class="bubble-body">
-¡Buenas! 👋 Soy tu copiloto de tránsito para el **Metro de Panamá** (Línea 1 y Línea 2) y **MetroBus**.
-
-Monitoreo continuamente tu **ubicación**, **saldo en tarjeta**, **hora pico**, **tráfico vial** y **lluvia** en la Ciudad de Panamá.
-
-Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta como:
-• *"¿Cómo voy a San Miguelito con este tráfico?"*
-• *"¿Me alcanza el saldo para ir a Tocumen?"*
-• *"¿Cuál es la ruta más rápida a 5 de Mayo con lluvia?"*
+¡Buenas! 👋 Soy tu copiloto de tránsito para el <strong>Metro de Panamá</strong> (Línea 1 y Línea 2) y <strong>MetroBus</strong>.<br><br>
+Monitoreo continuamente tu <strong>ubicación</strong>, <strong>saldo en tarjeta</strong>, <strong>hora pico</strong>, <strong>tráfico vial</strong> y <strong>lluvia</strong> en la Ciudad de Panamá.<br><br>
+Escribe tu consulta abajo o prueba una de las preguntas rápidas.
             </div>
           </div>
         </div>
@@ -241,8 +245,9 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
     </section>
 
   </main>
+
   <!-- ======================================================================
-       INTERFAZ INFERIOR (Barra / Dock de Acciones Rápidas)
+       INTERFAZ INFERIOR (Dock / Barra de Acciones Rápidas)
        ====================================================================== -->
   <nav class="bottom-transit-bar" aria-label="Navegación y accesos directos">
     <div class="bottom-bar-container">
@@ -296,7 +301,6 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
     </div>
 
     <div class="modal-body">
-      <!-- Tarjeta física simulada -->
       <div class="metro-card-visual">
         <div class="metro-card-chip"></div>
         <div class="metro-card-logo">METRO DE PANAMÁ · MIBUS</div>
@@ -495,14 +499,13 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
        3. ai.js   (Define SYSTEM, local() y ollama())
        4. Script de interfaz (Define ctx(), ask() y gestión del DOM)
        ====================================================================== -->
-  <script src="rutas.js"></script>
+  <script src="data.js"></script>
   <script src="eta.js"></script>
   <script src="ai.js"></script>
 
   <script>
     // ========================================================================
     // SCRIPT DE LA INTERFAZ (MetroSmart PTY)
-    // Implementa los contratos ctx(), ask() e interacción con mapa Leaflet
     // ========================================================================
 
     const ubicacionSelect = document.getElementById("ubicacion");
@@ -512,7 +515,6 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
     const traficoSelect = document.getElementById("trafico");
     const climaSelect = document.getElementById("clima");
     const modoSelect = document.getElementById("modo");
-    const liveJsonEl = document.getElementById("live-context-json");
     const delayFactorBadge = document.getElementById("delay-factor-badge");
     const factorDesc = document.getElementById("factor-description");
     const modelStatusBadge = document.getElementById("model-status-badge");
@@ -531,8 +533,6 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
 
     /**
      * CONTRATO OBLIGATORIO: ctx()
-     * Devuelve el contexto actual del sistema en tiempo real.
-     * @returns {{ ubicacion: string, saldo_usd: number, hora: string, trafico: string, clima: string }}
      */
     function ctx() {
       const ubicacion = ubicacionSelect ? ubicacionSelect.value : "Albrook";
@@ -556,54 +556,28 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
         trafico,
         clima
       };
-      
     }
 
     /**
-     * CONTRATO OBLIGATORIO: ask(pregunta)
-     * Muestra el mensaje en el chat y responde con local() u ollama() según el menú "Modo".
-     * @param {string} pregunta
+     * Formatea texto para el chat convirtiendo negritas y saltos de línea de forma segura.
      */
-    async function ask(pregunta) {
-      if (!pregunta || !pregunta.trim()) return;
-      const cleanPregunta = pregunta.trim();
-
-      // 1. Mostrar mensaje del usuario en el chat
-      appendMessage("user", cleanPregunta);
-
-      // 2. Mostrar indicador de carga "escribiendo..."
-      const loadingEl = showTypingIndicator();
-
-      // 3. Determinar modo y obtener respuesta
-      const modo = modoSelect ? modoSelect.value : "local";
-      let respuesta = "";
-
-      try {
-        if (modo === "ollama" && typeof ollama === "function") {
-          respuesta = await ollama(cleanPregunta);
-        } else if (typeof local === "function") {
-          await new Promise(res => setTimeout(res, 280));
-          respuesta = local(cleanPregunta);
-        } else {
-          respuesta = "Error: no se encontró ningún motor de reglas o IA disponible.";
-        }
-      } catch (err) {
-        console.error("Error al procesar la respuesta:", err);
-        respuesta = "⚠️ Ocurrió un error inesperado al procesar tu consulta: " + (err.message || err);
-      } finally {
-        if (loadingEl && loadingEl.parentNode) {
-          loadingEl.remove();
-        }
-      }
-
-      // 4. Mostrar respuesta del asistente
-      appendMessage("bot", respuesta);
-
-      // 5. Analizar si la respuesta menciona un destino conocido de STOPS para dibujar la línea en el mapa
-      detectAndDrawRoute(cleanPregunta, respuesta);
+    function formatMessageText(text) {
+      if (!text) return "";
+      const escaped = String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      const bolded = escaped.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+      return bolded.replace(/\n/g, "<br>");
     }
 
+    /**
+     * Agrega una burbuja al contenedor de chat.
+     */
     function appendMessage(sender, text) {
+      const messagesContainer = chatMessagesEl || document.getElementById("chat-messages");
+      if (!messagesContainer) return;
+
       const bubble = document.createElement("div");
       bubble.className = `chat-bubble ${sender}`;
 
@@ -616,14 +590,20 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
 
       const body = document.createElement("div");
       body.className = "bubble-body";
-      body.textContent = text;
+      body.innerHTML = formatMessageText(text);
       bubble.appendChild(body);
 
-      chatMessagesEl.appendChild(bubble);
-      chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+      messagesContainer.appendChild(bubble);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
+    /**
+     * Muestra el indicador animado de escritura.
+     */
     function showTypingIndicator() {
+      const messagesContainer = chatMessagesEl || document.getElementById("chat-messages");
+      if (!messagesContainer) return null;
+
       const bubble = document.createElement("div");
       bubble.className = "chat-bubble bot";
       bubble.innerHTML = `
@@ -637,15 +617,61 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
           <span class="typing-dot"></span>
         </div>
       `;
-      chatMessagesEl.appendChild(bubble);
-      chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+      messagesContainer.appendChild(bubble);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
       return bubble;
+    }
+
+    /**
+     * CONTRATO OBLIGATORIO: ask(pregunta)
+     */
+    async function ask(pregunta) {
+      if (!pregunta || !pregunta.trim()) return;
+      const cleanPregunta = pregunta.trim();
+
+      // 1. Mostrar mensaje del usuario
+      appendMessage("user", cleanPregunta);
+
+      // 2. Mostrar indicador de carga
+      const loadingEl = showTypingIndicator();
+
+      // 3. Determinar modo y obtener respuesta
+      const modo = modoSelect ? modoSelect.value : "local";
+      let respuesta = "";
+
+      try {
+        if (modo === "ollama" && typeof ollama === "function") {
+          respuesta = await ollama(cleanPregunta);
+        } else if (typeof local === "function") {
+          await new Promise(res => setTimeout(res, 200));
+          respuesta = local(cleanPregunta);
+        } else {
+          respuesta = "Error: no se encontró ningún motor de reglas o IA disponible.";
+        }
+      } catch (err) {
+        console.error("Error al procesar la respuesta:", err);
+        respuesta = "⚠️ Ocurrió un error inesperado al procesar tu consulta: " + (err.message || err);
+      } finally {
+        if (loadingEl && loadingEl.parentNode) {
+          loadingEl.remove();
+        }
+      }
+
+      // 4. Mostrar respuesta
+      appendMessage("bot", respuesta);
+
+      // 5. Trazar ruta en mapa de forma segura
+      try {
+        detectAndDrawRoute(cleanPregunta, respuesta);
+      } catch (e) {
+        console.warn("No se pudo trazar ruta en el mapa:", e);
+      }
     }
 
     function detectAndDrawRoute(pregunta, respuesta) {
       if (typeof STOPS === "undefined" || !mapInstance) return;
 
-      const currentOrigin = ubicacionSelect.value;
+      const currentOrigin = ubicacionSelect ? ubicacionSelect.value : "Albrook";
       const combinedText = (pregunta + " " + respuesta).toLowerCase();
       const allStops = Object.keys(STOPS);
 
@@ -708,8 +734,6 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
 
     function updateTelemetryDisplay() {
       const c = ctx();
-      
-      liveJsonEl.textContent = JSON.stringify(c, null, 2);
 
       if (saldoFeedback) {
         saldoFeedback.textContent = `$${c.saldo_usd.toFixed(2)}`;
@@ -719,17 +743,18 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
       const f = typeof factor === "function" ? factor(c.hora, c.trafico, c.clima) : 1.0;
       const isRush = typeof rush === "function" ? rush(c.hora) > 1.0 : false;
 
-      delayFactorBadge.textContent = `${f.toFixed(2)}x`;
-
-      delayFactorBadge.className = "factor-badge";
-      if (f >= 1.7) {
-        delayFactorBadge.classList.add("heavy");
-        factorDesc.textContent = `Congestión alta ${isRush ? "(Hora Pico)" : ""} con ${c.clima.toLowerCase()}`;
-      } else if (f >= 1.3) {
-        delayFactorBadge.classList.add("moderate");
-        factorDesc.textContent = `Demora moderada ${isRush ? "(Hora Pico)" : ""}`;
-      } else {
-        factorDesc.textContent = `Flujo óptimo sin retrasos significativos`;
+      if (delayFactorBadge) {
+        delayFactorBadge.textContent = `${f.toFixed(2)}x`;
+        delayFactorBadge.className = "factor-badge";
+        if (f >= 1.7) {
+          delayFactorBadge.classList.add("heavy");
+          if (factorDesc) factorDesc.textContent = `Congestión alta ${isRush ? "(Hora Pico)" : ""} con ${c.clima.toLowerCase()}`;
+        } else if (f >= 1.3) {
+          delayFactorBadge.classList.add("moderate");
+          if (factorDesc) factorDesc.textContent = `Demora moderada ${isRush ? "(Hora Pico)" : ""}`;
+        } else {
+          if (factorDesc) factorDesc.textContent = `Flujo óptimo sin retrasos significativos`;
+        }
       }
 
       updateOriginMapMarker(c.ubicacion);
@@ -742,12 +767,14 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
 
       if (activeOriginMarker) {
         activeOriginMarker.setLatLng([stop.lat, stop.lng]);
-        activeOriginMarker.getPopup().setContent(`
-          <div class="metro-station-popup">
-            <h4>📍 ${ubicacionName} (Tu Ubicación)</h4>
-            <p>${stop.desc || "Estación seleccionada"}</p>
-          </div>
-        `);
+        if (activeOriginMarker.getPopup()) {
+          activeOriginMarker.getPopup().setContent(`
+            <div class="metro-station-popup">
+              <h4>📍 ${ubicacionName} (Tu Ubicación)</h4>
+              <p>${stop.desc || "Estación seleccionada"}</p>
+            </div>
+          `);
+        }
       } else {
         const originIcon = L.divIcon({
           className: "custom-origin-icon",
@@ -779,7 +806,7 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
       }).setView([8.995, -79.515], 12);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        attribution: '&copy; OpenStreetMap contributors',
         maxZoom: 18
       }).addTo(mapInstance);
 
@@ -804,11 +831,13 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
         });
       }
 
-      updateOriginMapMarker(ubicacionSelect.value);
+      if (ubicacionSelect) {
+        updateOriginMapMarker(ubicacionSelect.value);
+      }
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      if (typeof STOPS !== "undefined") {
+      if (typeof STOPS !== "undefined" && ubicacionSelect) {
         ubicacionSelect.innerHTML = "";
         Object.keys(STOPS).forEach((name) => {
           const opt = document.createElement("option");
@@ -822,27 +851,30 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
       const now = new Date();
       const hh = String(now.getHours()).padStart(2, "0");
       const mm = String(now.getMinutes()).padStart(2, "0");
-      horaInput.value = `${hh}:${mm}`;
+      if (horaInput) horaInput.value = `${hh}:${mm}`;
 
       initMap();
       updateTelemetryDisplay();
 
-      ubicacionSelect.addEventListener("change", () => {
-        updateTelemetryDisplay();
-        if (activeRoutePolyline) {
-          mapInstance.removeLayer(activeRoutePolyline);
-          activeRoutePolyline = null;
-          routeIndicatorText.textContent = "Selecciona o consulta una ruta";
-        }
-      });
+      if (ubicacionSelect) {
+        ubicacionSelect.addEventListener("change", () => {
+          updateTelemetryDisplay();
+          if (activeRoutePolyline && mapInstance) {
+            mapInstance.removeLayer(activeRoutePolyline);
+            activeRoutePolyline = null;
+            if (routeIndicatorText) routeIndicatorText.textContent = "Selecciona o consulta una ruta";
+          }
+        });
+      }
 
-      saldoInput.addEventListener("input", updateTelemetryDisplay);
-      horaInput.addEventListener("input", updateTelemetryDisplay);
-      traficoSelect.addEventListener("change", updateTelemetryDisplay);
-      climaSelect.addEventListener("change", updateTelemetryDisplay);
+      if (saldoInput) saldoInput.addEventListener("input", updateTelemetryDisplay);
+      if (horaInput) horaInput.addEventListener("input", updateTelemetryDisplay);
+      if (traficoSelect) traficoSelect.addEventListener("change", updateTelemetryDisplay);
+      if (climaSelect) climaSelect.addEventListener("change", updateTelemetryDisplay);
 
       document.querySelectorAll(".chip-btn").forEach(btn => {
         btn.addEventListener("click", () => {
+          if (!saldoInput) return;
           const current = parseFloat(saldoInput.value || "0");
           if (btn.dataset.add) {
             saldoInput.value = (current + parseFloat(btn.dataset.add)).toFixed(2);
@@ -853,26 +885,47 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
         });
       });
 
-      modoSelect.addEventListener("change", () => {
-        const val = modoSelect.value;
-        if (val === "ollama") {
-          modelStatusBadge.textContent = "Ollama Activo";
-          modelStatusBadge.style.background = "var(--color-metro-red)";
-        } else {
-          modelStatusBadge.textContent = "Reglas Locales";
-          modelStatusBadge.style.background = "var(--color-metro-green)";
-        }
-      });
+      if (modoSelect) {
+        modoSelect.addEventListener("change", () => {
+          const val = modoSelect.value;
+          if (modelStatusBadge) {
+            if (val === "ollama") {
+              modelStatusBadge.textContent = "Ollama Activo";
+              modelStatusBadge.style.background = "var(--color-metro-red)";
+            } else {
+              modelStatusBadge.textContent = "Reglas Locales";
+              modelStatusBadge.style.background = "var(--color-metro-green)";
+            }
+          }
+        });
+      }
 
-      chatForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const text = chatInput.value;
-        if (text && text.trim()) {
-          chatInput.value = "";
-          ask(text);
-        }
-      });
+      // Manejo de envío del chat (Formulario y Enter)
+      if (chatForm) {
+        chatForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const text = chatInput ? chatInput.value : "";
+          if (text && text.trim()) {
+            if (chatInput) chatInput.value = "";
+            ask(text);
+          }
+        });
+      }
 
+      // Botón Enviar explícito
+      const sendBtn = document.getElementById("send-btn");
+      if (sendBtn && chatForm) {
+        sendBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          const text = chatInput ? chatInput.value : "";
+          if (text && text.trim()) {
+            if (chatInput) chatInput.value = "";
+            ask(text);
+          }
+        });
+      }
+
+      // Preguntas rápidas
       document.querySelectorAll(".quick-q-btn").forEach(btn => {
         btn.addEventListener("click", () => {
           const q = btn.dataset.query;
@@ -880,22 +933,23 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
         });
       });
 
-      themeToggleBtn.addEventListener("click", () => {
-        const isDark = document.documentElement.classList.toggle("dark");
-        themeIcon.textContent = isDark ? "☀️" : "🌙";
-        themeText.textContent = isDark ? "Claro" : "Oscuro";
-        localStorage.setItem("metrosmart-theme", isDark ? "dark" : "light");
-      });
+      // Tema Claro / Oscuro
+      if (themeToggleBtn) {
+        themeToggleBtn.addEventListener("click", () => {
+          const isDark = document.documentElement.classList.toggle("dark");
+          if (themeIcon) themeIcon.textContent = isDark ? "☀️" : "🌙";
+          if (themeText) themeText.textContent = isDark ? "Claro" : "Oscuro";
+          localStorage.setItem("metrosmart-theme", isDark ? "dark" : "light");
+        });
+      }
 
       if (localStorage.getItem("metrosmart-theme") === "dark") {
         document.documentElement.classList.add("dark");
-        themeIcon.textContent = "☀️";
-        themeText.textContent = "Claro";
+        if (themeIcon) themeIcon.textContent = "☀️";
+        if (themeText) themeText.textContent = "Claro";
       }
-    });
-    // ======================================================================
-      // LÓGICA DE MODALES: PERFIL, RECARGA Y RUTAS
-      // ======================================================================
+
+      // Modales: Perfil, Recarga y Rutas
       const backdrop = document.getElementById("modal-backdrop");
       const modalPerfil = document.getElementById("modal-perfil");
       const modalRecarga = document.getElementById("modal-recarga");
@@ -921,7 +975,7 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
         modalEl.classList.remove("hidden");
         document.body.style.overflow = "hidden";
 
-        const currentBal = `$${parseFloat(saldoInput.value || "0").toFixed(2)}`;
+        const currentBal = `$${parseFloat(saldoInput ? saldoInput.value : "1.50").toFixed(2)}`;
         if (profileCardBalance) profileCardBalance.textContent = currentBal;
         if (rechargeCurrentBalance) rechargeCurrentBalance.textContent = `${currentBal} USD`;
         if (rechargeSuccessMsg) rechargeSuccessMsg.classList.add("hidden");
@@ -948,7 +1002,6 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
         if (e.key === "Escape") closeAllModals();
       });
 
-      // Guardar nombre de perfil en localStorage
       if (btnSaveProfile && profileNameInput) {
         btnSaveProfile.addEventListener("click", () => {
           const newName = profileNameInput.value.trim() || "Viajero MetroSmart";
@@ -968,7 +1021,6 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
         if (cardHolderName) cardHolderName.textContent = savedName;
       }
 
-      // Selección de monto de recarga
       let selectedAmt = 1.00;
       document.querySelectorAll(".recharge-amt-btn").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -989,20 +1041,19 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
         });
       }
 
-      // Confirmar y aplicar recarga al saldo real
       if (btnExecuteRecharge) {
         btnExecuteRecharge.addEventListener("click", () => {
-          const current = parseFloat(saldoInput.value || "0");
+          const current = parseFloat(saldoInput ? saldoInput.value : "0");
           const added = selectedAmt > 0 ? selectedAmt : 1.00;
           const newBal = (current + added).toFixed(2);
-          saldoInput.value = newBal;
+          if (saldoInput) saldoInput.value = newBal;
           updateTelemetryDisplay();
 
           if (rechargeCurrentBalance) rechargeCurrentBalance.textContent = `$${newBal} USD`;
           if (profileCardBalance) profileCardBalance.textContent = `$${newBal}`;
           if (rechargeSuccessMsg) rechargeSuccessMsg.classList.remove("hidden");
 
-          appendMessage("bot", `💳 **Recarga confirmada**: Se acreditaron exitosamente **+$${added.toFixed(2)} USD** a tu tarjeta Metro/RapiPass. Tu nuevo saldo es de **$${newBal} USD**.`);
+          appendMessage("bot", `💳 <strong>Recarga confirmada</strong>: Se acreditaron exitosamente <strong>+$${added.toFixed(2)} USD</strong> a tu tarjeta Metro/RapiPass. Tu nuevo saldo es de <strong>$${newBal} USD</strong>.`);
 
           setTimeout(() => {
             closeAllModals();
@@ -1010,7 +1061,6 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
         });
       }
 
-      // Trazar ruta desde el directorio de rutas
       document.querySelectorAll(".route-action-chip").forEach(btn => {
         btn.addEventListener("click", () => {
           const origin = btn.dataset.origin;
@@ -1024,7 +1074,9 @@ Puedes usar las preguntas rápidas de abajo o preguntarme sobre cualquier ruta c
           }
         });
       });
+    });
 
+    // Exposición global
     window.ctx = ctx;
     window.ask = ask;
   </script>
