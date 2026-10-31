@@ -1,0 +1,62 @@
+// ============================================================================
+// MetroSmart PTY - eta.js
+// Estimador de demoras y factores de hora pico, tráfico y clima
+// ============================================================================
+// PERSONA 3: ampliar aquí
+
+/**
+ * Determina el multiplicador base por hora pico en la Ciudad de Panamá.
+ * Horas pico habituales: 6:00 a 9:59 (6-9) y 16:00 a 19:59 (16-19)
+ * @param {string|number} hora - Hora en formato "HH:MM", "HH" o entero (0-23)
+ * @returns {number} Multiplicador de demora (1.4 en hora pico, 1.0 en hora regular)
+ */
+function rush(hora) {
+  let h = 0;
+  if (hora === undefined || hora === null || hora === "") {
+    h = new Date().getHours();
+  } else if (typeof hora === "string") {
+    const parts = hora.split(":");
+    h = parseInt(parts[0], 10);
+    if (isNaN(h)) h = new Date().getHours();
+  } else if (typeof hora === "number") {
+    h = Math.floor(hora);
+  }
+
+  // Horas pico en Panamá: 6 a 9 y 16 a 19
+  const isMorningRush = h >= 6 && h <= 9;
+  const isEveningRush = h >= 16 && h <= 19;
+
+  if (isMorningRush || isEveningRush) {
+    return 1.4; // Multiplicador por hora pico
+  }
+  return 1.0; // Multiplicador en horario regular / valle
+}
+
+/**
+ * Calcula el factor multiplicador global de demora combinando hora, tráfico y clima.
+ * @param {string|number} hora - Hora actual ("HH:MM" o número)
+ * @param {string} trafico - "Normal" o "Pesado"
+ * @param {string} clima - "Despejado" o "Lluvia"
+ * @returns {number} Factor de demora redondeado a 2 decimales
+ */
+function factor(hora, trafico, clima) {
+  let mult = rush(hora);
+
+  // Tráfico "Pesado" en superficie aumenta la demora (+0.45)
+  if (typeof trafico === "string" && trafico.trim().toLowerCase().includes("pesado")) {
+    mult += 0.45;
+  }
+
+  // Clima "Lluvia" aumenta la demora (+0.35 por anegamientos y visibilidad)
+  if (typeof clima === "string" && clima.trim().toLowerCase().includes("lluvia")) {
+    mult += 0.35;
+  }
+
+  return Number(mult.toFixed(2));
+}
+
+// Exposición global para navegador
+if (typeof window !== "undefined") {
+  window.rush = rush;
+  window.factor = factor;
+}
