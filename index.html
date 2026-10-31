@@ -8,6 +8,17 @@
   <meta property="og:title" content="MetroSmart PTY — Copiloto de Tránsito Metro & MetroBus de Panamá">
   <meta property="og:description" content="Copiloto de tránsito para MetroBus y Metro de Panamá con cálculo de rutas, factor de demora, clima, saldo y telemetría en tiempo real.">
 
+<!-- Cargar el script de detección -->
+<script src="detect-mobile.js"></script>
+
+<script>
+  // Ejecutar la redirección automática al cargar la página
+  document.addEventListener("DOMContentLoaded", function () {
+    MobileDetector.autoRedirect("mobile.html");
+  });
+</script>
+
+
   <!-- Estilos de Señalética de Transporte PTY -->
   <link rel="stylesheet" href="style.css">
 
